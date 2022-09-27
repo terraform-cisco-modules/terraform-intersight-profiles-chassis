@@ -10,7 +10,7 @@ Location in GUI:
 ### main.tf
 ```hcl
 module "chassis" {
-  source  = "terraform-cisco-modules/pools-fc/intersight"
+  source  = "terraform-cisco-modules/profiles-chassis/intersight"
   version = ">= 1.0.1"
 
   action              = "No-Op"
