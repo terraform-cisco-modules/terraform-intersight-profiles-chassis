@@ -14,6 +14,12 @@ variable "action" {
   type        = string
 }
 
+variable "chassis_template" {
+  default     = ""
+  description = "NOT YET SUPPORTED.  The Name of the Chassis Template to Assign to the Chassis."
+  type        = string
+}
+
 variable "description" {
   default     = ""
   description = "Description for the Profile."
@@ -46,12 +52,6 @@ variable "policy_bucket" {
 variable "serial_number" {
   default     = ""
   description = "Serial Number of the Chassis to Assign."
-  type        = string
-}
-
-variable "src_template" {
-  default     = ""
-  description = "A reference to a policyAbstractProfile resource.."
   type        = string
 }
 
