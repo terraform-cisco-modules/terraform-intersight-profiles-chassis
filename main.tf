@@ -29,6 +29,34 @@ data "intersight_organization_organization" "org_moid" {
 #   name = each.value
 # }
 
+data "intersight_access_policy" "imc_access" {
+  for_each = {
+    for v in var.policy_bucket : v.name => v if var.moids == false && v.object_type == "access.Policy"
+  }
+  name = each.value.name
+}
+
+data "intersight_power_policy" "power" {
+  for_each = {
+    for v in var.policy_bucket : v.name => v if var.moids == false && v.object_type == "power.Policy"
+  }
+  name = each.value.name
+}
+
+data "intersight_snmp_policy" "snmp" {
+  for_each = {
+    for v in var.policy_bucket : v.name => v if var.moids == false && v.object_type == "snmp.Policy"
+  }
+  name = each.value.name
+}
+
+data "intersight_thermal_policy" "thermal" {
+  for_each = {
+    for v in var.policy_bucket : v.name => v if var.moids == false && v.object_type == "thermal.Policy"
+  }
+  name = each.value.name
+}
+
 data "intersight_equipment_chassis" "chassis" {
   for_each = { for v in compact([var.serial_number]) : v => v }
   serial   = each.value
@@ -68,9 +96,17 @@ resource "intersight_chassis_profile" "chassis" {
     }
   }
   dynamic "policy_bucket" {
-    for_each = { for v in var.policy_bucket : v => v }
+    for_each = { for v in var.policy_bucket : v.object_type => v }
     content {
-      moid        = policy_bucket.value.moid
+      moid = length(regexall(true, var.moids)
+        ) > 0 ? var.policies[policy_bucket.value.policy][policy_bucket.value.name
+        ] : length(regexall("access.Policy", policy_bucket.value.object_type)
+        ) > 0 ? data.intersight_access_policy.imc_access[policy_bucket.key].results[0
+        ].moid : length(regexall("power.Policy", policy_bucket.value.object_type)
+        ) > 0 ? data.intersight_power_policy.power[policy_bucket.key].results[0
+        ].moid : length(regexall("thermal.Policy", policy_bucket.value.object_type)
+        ) > 0 ? data.intersight_thermal_policy.thermal[policy_bucket.key].results[0
+      ].moid : ""
       object_type = policy_bucket.value.object_type
     }
   }
