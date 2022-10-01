@@ -98,7 +98,7 @@ resource "intersight_chassis_profile" "chassis" {
   dynamic "assigned_chassis" {
     for_each = { for v in compact([var.serial_number]) : v => v }
     content {
-      moid = data.intersight_equipment_chassis.chassis.results[0].moid
+      moid = data.intersight_equipment_chassis.chassis[assigned_chassis.value].results[0].moid
     }
   }
   dynamic "policy_bucket" {
