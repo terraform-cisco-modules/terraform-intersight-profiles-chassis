@@ -62,6 +62,12 @@ data "intersight_equipment_chassis" "chassis" {
   serial   = each.value
 }
 
+locals {
+  org_moid = length(regexall(true, var.moids)
+    ) > 0 ? var.organization : data.intersight_organization_organization.org_moid[
+    var.organization].results[0
+  ].moid
+}
 
 #____________________________________________________________
 #
@@ -101,12 +107,18 @@ resource "intersight_chassis_profile" "chassis" {
       moid = length(regexall(true, var.moids)
         ) > 0 ? var.policies[policy_bucket.value.policy][policy_bucket.value.name
         ] : length(regexall("access.Policy", policy_bucket.value.object_type)
-        ) > 0 ? data.intersight_access_policy.imc_access[policy_bucket.key].results[0
-        ].moid : length(regexall("power.Policy", policy_bucket.value.object_type)
-        ) > 0 ? data.intersight_power_policy.power[policy_bucket.key].results[0
-        ].moid : length(regexall("thermal.Policy", policy_bucket.value.object_type)
-        ) > 0 ? data.intersight_thermal_policy.thermal[policy_bucket.key].results[0
-      ].moid : ""
+        ) > 0 ? [for i in data.intersight_access_policy.imc_access[policy_bucket.value.name
+        ].results : i.moid if i.organization[0].moid == local.org_moid
+        ][0] : length(regexall("power.Policy", policy_bucket.value.object_type)
+        ) > 0 ? [for i in data.intersight_power_policy.power[policy_bucket.value.name
+        ].results : i.moid if i.organization[0].moid == local.org_moid
+        ][0] : length(regexall("snmp.Policy", policy_bucket.value.object_type)
+        ) > 0 ? [for i in data.intersight_snmp_policy.snmp[policy_bucket.value.name
+        ].results : i.moid if i.organization[0].moid == local.org_moid
+        ][0] : length(regexall("thermal.Policy", policy_bucket.value.object_type)
+        ) > 0 ? [for i in data.intersight_thermal_policy.thermal[policy_bucket.value.name
+        ].results : i.moid if i.organization[0].moid == local.org_moid
+      ][0] : ""
       object_type = policy_bucket.value.object_type
     }
   }
